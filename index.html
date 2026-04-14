@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --ink:#17212b;
+      --muted:#627285;
+      --line:#dfe7f0;
+      --brand:#244a7c;
+      --brand-2:#3a6ea5;
+      --ok:#197a43;
+      --warn:#b36a00;
+      --bad:#b92e34;
+      --soft:#eef4fb;
+      --shadow:0 10px 30px rgba(23,33,43,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+    .app{max-width:1180px;margin:0 auto;padding:18px 16px 96px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+    .title-wrap h1{margin:0;font-size:34px;letter-spacing:-0.04em;font-weight:800}
+    .title-wrap p{display:none}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    button,select,input,textarea{font:inherit}
+    .btn{border:none;background:var(--brand);color:white;padding:12px 14px;border-radius:14px;cursor:pointer;font-weight:800;box-shadow:0 8px 18px rgba(36,74,124,.16)}
+    .btn.secondary{background:white;color:var(--brand);border:1px solid var(--line);box-shadow:none}
+    .btn.ghost{background:var(--soft);color:var(--brand)}
+    .btn.warn{background:var(--warn)}
+    .btn.bad{background:var(--bad)}
+    .btn.ok{background:var(--ok)}
+    .tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px}
+    .tab{background:white;border:1px solid var(--line);padding:12px;border-radius:16px;text-align:center;cursor:pointer;font-weight:700;color:var(--muted)}
+    .tab.active{background:var(--brand);color:white;border-color:var(--brand)}
+    .view{display:none}
+    .view.active{display:block}
+    .grid{display:grid;gap:16px}
+    .grid.kpi{grid-template-columns:repeat(4,1fr)}
+    .grid.two{grid-template-columns:1.35fr .95fr}
+    .grid.three{grid-template-columns:repeat(3,1fr)}
+    .card{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 12px 32px rgba(23,33,43,.06);border:1px solid #e9eff6}
+    .card h3,.card h2{margin:0 0 12px}
+    .muted{color:var(--muted)}
+    .kpi .card{padding:18px}
+    .kpi-value{font-size:28px;font-weight:800;margin-top:8px}
+    .kpi-value.ok{color:var(--ok)}
+    .kpi-value.bad{color:var(--bad)}
+    .kpi-value.warn{color:var(--warn)}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .toolbar input,.toolbar select,.field input,.field select,.field textarea{width:100%;padding:12px 12px;border:1px solid var(--line);border-radius:12px;background:white}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+    .field label{font-size:14px;color:var(--muted);font-weight:700}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{display:flex;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fbfdff;align-items:flex-start}
+    .item-left{min-width:0}
+    .item-title{font-weight:800;margin-bottom:4px}
+    .item-sub{color:var(--muted);font-size:14px;line-height:1.4}
+    .item-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .mini{padding:8px 10px;border-radius:10px;font-size:13px}
+    .pill{display:inline-block;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700;background:var(--soft);color:var(--brand);margin-right:6px;margin-top:4px}
+    .pill.ok{background:#e7f7ee;color:var(--ok)}
+    .pill.bad{background:#fdeced;color:var(--bad)}
+    .pill.warn{background:#fff3e0;color:var(--warn)}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .empty{padding:18px;border:1px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted);background:#fafcff}
+    .month-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .month-chip{padding:10px 12px;background:var(--soft);border-radius:12px;font-weight:700;color:var(--brand)}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .inline{display:flex;gap:10px;flex-wrap:wrap}
+    .shop-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .shop-tab{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:white;cursor:pointer;font-weight:700}
+    .shop-tab.active{background:var(--brand);color:white;border-color:var(--brand)}
+    .footer-nav{position:fixed;left:0;right:0;bottom:0;background:white;border-top:1px solid var(--line);display:none;grid-template-columns:repeat(6,1fr);z-index:5}
+    .footer-nav button{padding:12px 4px;border:none;background:none;color:var(--muted);font-weight:700}
+    .footer-nav .footer-icon{display:block;font-size:16px;line-height:1.1}
+    .footer-nav .footer-label{display:block;font-size:13px;line-height:1.15;margin-top:2px}
+    .footer-nav button.active{color:var(--brand)}
+    .notice{background:#f1f7ff;border:1px solid #d6e6fb;color:var(--brand);padding:12px;border-radius:14px;margin-top:12px}
+    .danger-note{background:#fff5f5;border:1px solid #ffd7d7;color:#8c2a2a;padding:12px;border-radius:14px;margin-top:12px}
+
+    .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .auth-card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;padding:28px;max-width:420px;width:100%}
+    .auth-logo{width:56px;height:56px;border-radius:18px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;margin-bottom:14px}
+    .small{font-size:14px}
+    .app-shell{display:none}
+    .user-pill{display:none}
+    .user-name-home{font-size:28px;font-weight:800;margin:0 0 14px;letter-spacing:-0.03em}
+    .btn.compact{padding:10px 12px;border-radius:12px;font-size:15px}
+
+    .topbar-user{font-size:18px;font-weight:700;color:var(--muted);margin-left:auto;text-align:right}
+    .home-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .home-summary-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .summary-mini .sub{font-size:12px;color:var(--muted);margin-top:4px}
+    .summary-mini{background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:12px}
+    .summary-mini .label{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700}
+    .summary-mini .value{font-size:20px;font-weight:800;line-height:1.15}
+    .summary-mini .value.ok{color:var(--ok)}
+    .summary-mini .value.bad{color:var(--bad)}
+    .finance-card{padding:14px}
+    .finance-year-bar{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+    .finance-header-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:4px}
+    .finance-year-nav{display:flex;align-items:center;justify-content:center;gap:18px}
+    .finance-year-value{font-size:36px;font-weight:800;line-height:1}
+    .finance-toolbar-line{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;align-items:center}
+    .finance-toolbar-line .btn{padding:10px 12px;border-radius:12px;background:var(--brand);color:#fff}
+    .finance-select select{width:100%;padding:10px 12px;border-radius:12px;font-weight:800;background:var(--brand);color:#fff;border:none;box-shadow:0 8px 18px rgba(36,74,124,.16)}
+    .finance-table-wrap{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff}
+    .finance-table{width:100%;border-collapse:collapse;table-layout:fixed}
+    .finance-table th,.finance-table td{padding:10px 4px;border-bottom:1px solid #edf1f5;text-align:center;font-size:12px}
+    .finance-table th{background:#f8fafc;color:var(--muted);font-weight:800}
+    .finance-table td:first-child,.finance-table th:first-child{text-align:left;padding-left:10px;font-weight:800}
+    .finance-table tr:last-child td{border-bottom:none}
+    .money-pos{color:var(--ok);font-weight:700}
+    .money-neg{color:var(--bad);font-weight:700}
+    .money-neutral{color:var(--ink);font-weight:700}
+    .finance-summary-compact{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .finance-mini-card.clickable{cursor:pointer}
+    .finance-mini-card.clickable:hover{border-color:#c8d7ea}
+    .finance-mini-card .sub-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+    .finance-mini-card .sub-pill{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 8px;text-align:center}
+    .finance-mini-card{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:12px}
+    .finance-mini-card .label{font-size:13px;color:var(--muted);margin-bottom:6px}
+    .finance-mini-card .value{font-size:24px;font-weight:800}
+    .finance-mini-card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+    .finance-month-btn{background:none;border:none;padding:0;color:var(--ink);font-weight:800;font-size:15px;cursor:pointer}
+    .finance-table td:first-child .finance-month-btn{display:block;width:100%;text-align:left}
+    .summary-mini.static{cursor:default}
+    .summary-mini.static .value{white-space:nowrap}
+    .pending-link-card{cursor:pointer}
+    .pending-link-card:hover,.finance-month-btn:hover{text-decoration:underline}
+    .upcoming-clickable{cursor:pointer}
+    .upcoming-clickable:hover{border-color:#c8d7ea}
+    .month-overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+    .month-overview-option{border:1px solid var(--line);border-radius:16px;background:#f8fafc;padding:14px;cursor:pointer}
+    .month-overview-option .title{font-weight:800;margin-bottom:6px}
+    .month-overview-option .sub{font-size:13px;color:var(--muted)}
+    .modal-actions-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+
+    @media (max-width: 980px){
+      .grid.kpi,.grid.two,.grid.three,.split{grid-template-columns:1fr 1fr}
+      .tabs{grid-template-columns:repeat(3,1fr)}
+    }
+    @media (max-width: 720px){
+      .grid.kpi,.grid.two,.grid.three,.split{grid-template-columns:1fr}
+      .tabs{display:none}
+      .footer-nav{display:grid}
+      .app{padding-bottom:96px}
+      .topbar{align-items:center}
+      .title-wrap h1{font-size:28px}
+      .topbar-user{font-size:15px}
+      .kpi-value{font-size:24px}
+      .item{flex-direction:column}
+      .item-actions{justify-content:flex-start}
+      .finance-year-value{font-size:31px}
+      .finance-toolbar-line{grid-template-columns:1fr 1fr 1fr}
+      .finance-table th,.finance-table td{font-size:11px;padding:9px 2px}
+      .finance-summary-compact{grid-template-columns:1fr}
+      .home-actions,.home-summary-row{grid-template-columns:1fr 1fr}
+      .finance-mini-card .sub-row{grid-template-columns:1fr}
+      .month-overview-grid,.modal-actions-row{grid-template-columns:1fr}
+      .summary-mini .value{font-size:17px}
+    }
+  </style>
+</head>
+<body>
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">J</div>
+      <h1>Jarvis</h1>
+      <p>Controle financeiro, agenda, tarefas e compras em um só lugar.</p>
+      <button class="btn" id="googleLoginBtn">Entrar com Google</button>
+      <p class="small muted" style="margin-top:14px">Depois do primeiro acesso, o Jarvis abre já conectado no mesmo aparelho.</p>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell">
+    <div class="app">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>Jarvis</h1>
+      </div>
+      <div class="topbar-user" id="topbarUserName"></div>
+    </div>
+
+    <div class="tabs" id="desktopTabs"></div>
+
+    <section class="view active" id="view-inicio"></section>
+    <section class="view" id="view-financeiro"></section>
+    <section class="view" id="view-agenda"></section>
+    <section class="view" id="view-tarefas"></section>
+    <section class="view" id="view-compras"></section>
+    <section class="view" id="view-config"></section>
+    </div>
+
+    <div class="footer-nav" id="mobileTabs"></div>
+  </div>
+
+  <dialog id="formDialog" style="border:none;border-radius:20px;max-width:720px;width:calc(100% - 24px);padding:0;box-shadow:0 20px 60px rgba(0,0,0,.2)"></dialog>
+  <input type="file" id="importFile" accept="application/json" style="display:none" />
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      onAuthStateChanged,
+      setPersistence,
+      browserLocalPersistence,
+      signInWithRedirect,
+      getRedirectResult,
+      signOut
+    } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+    import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA10HIz1bpzh6NE1fLBZGlt36VQaYvrlKo",
+      authDomain: "jarvis-controle-pessoal.firebaseapp.com",
+      projectId: "jarvis-controle-pessoal",
+      storageBucket: "jarvis-controle-pessoal.firebasestorage.app",
+      messagingSenderId: "362750721688",
+      appId: "1:362750721688:web:1fdad74d2a7aa9870c9aed"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const provider = new GoogleAuthProvider();
+    const db = getFirestore(firebaseApp);
+    const sharedStateRef = doc(db, 'jarvis', 'shared_state');
+    let cloudReady = false;
+    let cloudSyncTimer = null;
+    let lastCloudHash = '';
+    let syncStarted = false;
+    let currentUser = null;
+
+    const STORAGE_KEY = 'jarvis_v2';
+    const TABS = [
+      { id:'inicio', label:'Início', icon:'🏠' },
+      { id:'financeiro', label:'Financeiro', icon:'💰' },
+      { id:'agenda', label:'Agenda', icon:'📅' },
+      { id:'tarefas', label:'Tarefas', icon:'✅' },
+      { id:'compras', label:'Compras', icon:'🛒' },
+      { id:'config', label:'Config.', icon:'⚙️' },
+    ];
+
+    const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const pad = n => String(n).padStart(2,'0');
+    const today = new Date();
+
+    const seedRecurring = [
+      { name:'EMPRESTIMO BRB', category:'Empréstimos', type:'fixa', amount:1903.14, dueDay:5, paymentMethod:'Boleto', repeat:true },
+      { name:'AGUA', category:'Casa', type:'fixa', amount:200.00, dueDay:13, paymentMethod:'Pix', repeat:true },
+      { name:'ENERGIA', category:'Casa', type:'fixa', amount:50.00, dueDay:13, paymentMethod:'Pix', repeat:true },
+      { name:'INTERNET CLARO', category:'Casa', type:'fixa', amount:405.00, dueDay:15, paymentMethod:'Cartão', repeat:true },
+      { name:'INSS', category:'Impostos', type:'fixa', amount:166.98, dueDay:15, paymentMethod:'Pix', repeat:true },
+      { name:'ALUGUEL CASA', category:'Moradia', type:'fixa', amount:2520.00, dueDay:20, paymentMethod:'Transferência', repeat:true },
+      { name:'FINANCIAMENTO BYD', category:'Carro', type:'fixa', amount:3286.00, dueDay:26, paymentMethod:'Débito', repeat:true },
+      { name:'FAXINA LUZIA', category:'Serviços', type:'fixa', amount:720.00, dueDay:27, paymentMethod:'Pix', repeat:true },
+      { name:'BRADESCO SAUDE', category:'Saúde', type:'fixa', amount:2736.00, dueDay:29, paymentMethod:'Débito', repeat:true },
+      { name:'BRADESCO SAUDE (CONTADOR)', category:'Saúde', type:'fixa', amount:150.00, dueDay:29, paymentMethod:'Pix', repeat:true },
+      { name:'CARTÃO SICREDI', category:'Cartões', type:'variável', amount:480.00, dueDay:10, paymentMethod:'Cartão', repeat:true },
+      { name:'CARTÃO ITAU', category:'Cartões', type:'variável', amount:265.00, dueDay:20, paymentMethod:'Cartão', repeat:true },
+      { name:'CARTÃO MERCADO PAGO', category:'Cartões', type:'variável', amount:190.00, dueDay:20, paymentMethod:'Cartão', repeat:true },
+      { name:'CARTÃO BRB', category:'Cartões', type:'variável', amount:1800.00, dueDay:25, paymentMethod:'Cartão', repeat:true },
+      { name:'CARTÃO C6', category:'Cartões', type:'variável', amount:783.00, dueDay:25, paymentMethod:'Cartão', repeat:true },
+      { name:'CARTÃO SANTANDER', category:'Cartões', type:'variável', amount:135.00, dueDay:25, paymentMethod:'Cartão', repeat:true },
+    ];
+
+    const defaultState = () => ({
+      currentTab: 'inicio',
+      selectedMonth: `${today.getFullYear()}-${pad(today.getMonth()+1)}`,
+      shoppingView: 'mercado',
+      financeView: 'todas',
+      settings: {
+        systemName: 'Jarvis',
+        user1: 'Cláudio',
+        user2: 'Esposa',
+        currency: 'BRL'
+      },
+      expenses: [],
+      recurringTemplates: [...seedRecurring],
+      appointments: [],
+      tasks: [],
+      shopping: [],
+      income: [],
+      goals: []
+    });
+
+    let state = loadState();
+    ensureRecurringForMonth(state.selectedMonth);
+    initAuth();
+
+    async function initAuth(){
+      document.getElementById('googleLoginBtn').addEventListener('click', loginWithGoogle);
+      try{
+        await setPersistence(auth, browserLocalPersistence);
+      }catch(error){
+        console.error('Erro ao definir persistência do login:', error);
+      }
+
+      try{
+        await getRedirectResult(auth);
+      }catch(error){
+        console.error('Erro no login com Google:', error);
+        alert('Não consegui concluir o login com Google.');
+      }
+
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user || null;
+        if(user){
+          showApp(user);
+          if(!syncStarted){
+            renderAll();
+            startCloudSync();
+            syncStarted = true;
+          }else{
+            renderAll();
+          }
+        }else{
+          showAuth();
+        }
+      });
+    }
+
+    async function loginWithGoogle(){
+      try{
+        await signInWithRedirect(auth, provider);
+      }catch(error){
+        console.error('Erro ao iniciar login com Google:', error);
+        alert('Não consegui iniciar o login com Google.');
+      }
+    }
+
+    async function logout(){
+      try{
+        await signOut(auth);
+      }catch(error){
+        console.error('Erro ao sair:', error);
+      }
+    }
+
+    function showAuth(){
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('appShell').style.display = 'none';
+    }
+
+    function showApp(user){
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('appShell').style.display = 'block';
+      const holder = document.getElementById('userBadge');
+      if(holder) holder.innerHTML = '';
+    }
+
+    function loadState(){
+      try{
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if(!saved) return defaultState();
+        const merged = { ...defaultState(), ...JSON.parse(saved) };
+        merged.currentTab = 'inicio';
+        return merged;
+      }catch{
+        return defaultState();
+      }
+    }
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+    function getCloudPayload(){
+      return {
+        settings: state.settings,
+        expenses: state.expenses,
+        recurringTemplates: state.recurringTemplates,
+        appointments: state.appointments,
+        tasks: state.tasks,
+        shopping: state.shopping,
+        income: state.income,
+        goals: state.goals
+      };
+    }
+    function getCloudHash(payload = getCloudPayload()){
+      return JSON.stringify(payload);
+    }
+    function applyCloudPayload(payload){
+      state = {
+        ...defaultState(),
+        ...state,
+        ...payload,
+        currentTab: 'inicio',
+        selectedMonth: state.selectedMonth || `${today.getFullYear()}-${pad(today.getMonth()+1)}`,
+        shoppingView: state.shoppingView || 'mercado'
+      };
+      ensureRecurringForMonth(state.selectedMonth);
+      renderAll();
+    }
+    async function pushCloudState(){
+      if(!cloudReady) return;
+      const payload = getCloudPayload();
+      const hash = getCloudHash(payload);
+      if(hash === lastCloudHash) return;
+      try{
+        await setDoc(sharedStateRef, {
+          state: payload,
+          updatedAt: new Date().toISOString(),
+          app: 'Jarvis'
+        }, { merge: true });
+        lastCloudHash = hash;
+      }catch(error){
+        console.error('Erro ao salvar no Firebase:', error);
+      }
+    }
+    function scheduleCloudSync(){
+      if(!cloudReady) return;
+      const payload = getCloudPayload();
+      const hash = getCloudHash(payload);
+      if(hash === lastCloudHash) return;
+      clearTimeout(cloudSyncTimer);
+      cloudSyncTimer = setTimeout(() => { pushCloudState(); }, 700);
+    }
+    function startCloudSync(){
+      try{
+        onSnapshot(sharedStateRef, (snapshot) => {
+          cloudReady = true;
+          if(snapshot.exists() && snapshot.data()?.state){
+            const incoming = snapshot.data().state;
+            const incomingHash = getCloudHash(incoming);
+            if(incomingHash !== lastCloudHash){
+              lastCloudHash = incomingHash;
+              applyCloudPayload(incoming);
+            }
+          } else {
+            pushCloudState();
+          }
+        }, (error) => {
+          console.error('Erro na sincronização com Firebase:', error);
+          cloudReady = false;
+        });
+      }catch(error){
+        console.error('Erro ao iniciar Firebase:', error);
+        cloudReady = false;
+      }
+    }
+    function uid(prefix='id'){ return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`; }
+    function formatMoney(v){
+      return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
+    }
+    function formatDate(dateStr){
+      if(!dateStr) return '-';
+      const d = new Date(dateStr+'T00:00:00');
+      return d.toLocaleDateString('pt-BR');
+    }
+    function currentMonthLabel(){
+      const [year,month] = state.selectedMonth.split('-');
+      return `${monthNames[Number(month)-1]} / ${year}`;
+    }
+    function nextMonth(monthKey, delta){
+      let [y,m] = monthKey.split('-').map(Number);
+      m += delta;
+      if(m<1){ m=12; y--; }
+      if(m>12){ m=1; y++; }
+      return `${y}-${pad(m)}`;
+    }
+    function getMonthExpenseList(monthKey){
+      return state.expenses.filter(x=>x.month===monthKey).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+    }
+    function getMonthIncomeList(monthKey){
+      return state.income.filter(x=>x.month===monthKey).sort((a,b)=>a.date.localeCompare(b.date));
+    }
+    function ensureRecurringForMonth(monthKey){
+      const [year, month] = monthKey.split('-');
+      state.recurringTemplates.forEach(t => {
+        const exists = state.expenses.some(e => e.month===monthKey && e.templateId===t.templateId);
+        if(!exists){
+          if(!t.templateId) t.templateId = uid('tpl');
+          state.expenses.push({
+            id: uid('exp'),
+            templateId: t.templateId,
+            month: monthKey,
+            name: t.name,
+            category: t.category,
+            type: t.type,
+            amount: Number(t.amount),
+            actualAmount: Number(t.amount),
+            dueDate: `${year}-${month}-${pad(t.dueDay)}`,
+            paymentMethod: t.paymentMethod || '',
+            notes: '',
+            paid: false,
+            repeat: true,
+            createdAt: new Date().toISOString()
+          });
+        }
+      });
+      saveState();
+    }
+    function monthSummary(monthKey){
+      const list = getMonthExpenseList(monthKey);
+      const incomes = getMonthIncomeList(monthKey);
+      const total = list.reduce((s,x)=>s+Number(x.actualAmount||x.amount||0),0);
+      const paid = list.filter(x=>x.paid).reduce((s,x)=>s+Number(x.actualAmount||x.amount||0),0);
+      const pending = total - paid;
+      const cards = list.filter(x=>x.category==='Cartões' || x.name.toLowerCase().includes('cartão')).reduce((s,x)=>s+Number(x.actualAmount||x.amount||0),0);
+      const totalIncome = incomes.reduce((s,x)=>s+Number(x.amount||0),0);
+      return { total, paid, pending, cards, totalIncome, balance: totalIncome-total, countPending:list.filter(x=>!x.paid).length };
+    }
+    function upcomingExpenses(limit=5){
+      const now = new Date();
+      const all = [...state.expenses]
+        .filter(e=>!e.paid)
+        .sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+      return all.filter(e => new Date(e.dueDate+'T00:00:00') >= new Date(now.getFullYear(), now.getMonth(), now.getDate())).slice(0, limit);
+    }
+    function upcomingAppointments(limit=5){
+      const todayDate = new Date();
+      return [...state.appointments]
+        .sort((a,b)=>`${a.date}${a.time||''}`.localeCompare(`${b.date}${b.time||''}`))
+        .filter(a => new Date(`${a.date}T${a.time || '00:00'}:00`) >= todayDate)
+        .slice(0,limit);
+    }
+    function pendingTasks(limit=5){
+      return state.tasks.filter(t=>t.status!=='concluída').sort((a,b)=>(a.deadline||'9999').localeCompare(b.deadline||'9999')).slice(0,limit);
+    }
+    function pendingShopping(limit=6){
+      return state.shopping.filter(i=>!i.done).slice(0,limit);
+    }
+
+
+    function currentUserName(){
+      return currentUser?.displayName || currentUser?.email || state.settings.user1 || 'Usuário';
+    }
+    function getSelectedYear(){
+      return Number(state.selectedMonth.split('-')[0]);
+    }
+    function changeFinanceYear(delta){
+      const [y,m] = state.selectedMonth.split('-').map(Number);
+      state.selectedMonth = `${y + delta}-${pad(m)}`;
+      ensureRecurringForMonth(state.selectedMonth);
+      renderAll();
+    }
+    function setFinanceView(view){
+      state.financeView = view;
+      renderAll();
+    }
+    function getGoalForMonth(monthKey){
+      return state.goals.find(g => g.month===monthKey) || null;
+    }
+    function goalAmountForMonth(monthKey){
+      return Number(getGoalForMonth(monthKey)?.amount || 0);
+    }
+    function goalDifferenceForMonth(monthKey){
+      return goalAmountForMonth(monthKey) - monthSummary(monthKey).total;
+    }
+    function goalDifferenceForYear(year){
+      let total = 0;
+      for(let m=1;m<=12;m++){
+        total += goalDifferenceForMonth(`${year}-${pad(m)}`);
+      }
+      return total;
+    }
+    function yearSummary(year){
+      let entradas = 0, saidas = 0, metas = 0;
+      for(let m=1;m<=12;m++){
+        const monthKey = `${year}-${pad(m)}`;
+        const ms = monthSummary(monthKey);
+        entradas += ms.totalIncome;
+        saidas += ms.total;
+        metas += goalAmountForMonth(monthKey);
+      }
+      return { entradas, saidas, metas, saldo: entradas - saidas };
+    }
+    function getMonthlyFinanceRows(year){
+      return monthNames.map((name, idx) => {
+        const monthKey = `${year}-${pad(idx+1)}`;
+        const ms = monthSummary(monthKey);
+        return {
+          monthKey,
+          monthShort: name.slice(0,3),
+          monthFull: name,
+          entradas: ms.totalIncome,
+          saidas: ms.total,
+          metas: goalDifferenceForMonth(monthKey),
+          metaBase: goalAmountForMonth(monthKey),
+          saldo: ms.balance,
+          pending: ms.pending,
+          countPending: ms.countPending
+        };
+      });
+    }
+    function getPendingExpenses(monthKey){
+      return getMonthExpenseList(monthKey).filter(x=>!x.paid);
+    }
+    function openFinanceMonth(monthKey){
+      const ms = monthSummary(monthKey);
+      const goal = goalAmountForMonth(monthKey);
+      const monthName = monthNames[Number(monthKey.slice(5,7))-1];
+      openDialog(`
+        <div class="card" style="box-shadow:none;border:none;padding:20px">
+          <div class="section-title">
+            <h2 style="margin:0">${monthName} ${monthKey.slice(0,4)}</h2>
+            <button type="button" class="btn secondary mini" onclick="closeDialog()">Fechar</button>
+          </div>
+          <div class="month-overview-grid">
+            <button class="month-overview-option" onclick="openMonthEntries('${monthKey}')">
+              <div class="title">Entrada</div>
+              <div class="sub">${formatMoney(ms.totalIncome)}</div>
+            </button>
+            <button class="month-overview-option" onclick="openMonthExpenses('${monthKey}', false)">
+              <div class="title">Saída</div>
+              <div class="sub">${formatMoney(ms.total)} • ${ms.countPending} pendência(s)</div>
+            </button>
+            <button class="month-overview-option" onclick="openMonthGoal('${monthKey}')">
+              <div class="title">Meta</div>
+              <div class="sub">${goal ? formatMoney(goal) : 'Nenhuma meta cadastrada'}</div>
+            </button>
+          </div>
+        </div>
+      `);
+    }
+    function openMonthEntries(monthKey){
+      const list = getMonthIncomeList(monthKey);
+      const monthName = monthNames[Number(monthKey.slice(5,7))-1];
+      openDialog(`
+        <div class="card" style="box-shadow:none;border:none;padding:20px">
+          <div class="section-title">
+            <h2 style="margin:0">Entradas • ${monthName} ${monthKey.slice(0,4)}</h2>
+            <button type="button" class="btn secondary mini" onclick="${pendingOnly ? `closeDialog()` : `openFinanceMonth('${monthKey}')`}">Voltar</button>
+          </div>
+          ${list.length ? `<div class="list">${list.map(i => `
+            <div class="item">
+              <div class="item-left">
+                <div class="item-title">${i.description}</div>
+                <div class="item-sub">${formatDate(i.date)} • ${i.category || 'Sem categoria'}</div>
+              </div>
+              <div class="item-actions">
+                <strong>${formatMoney(i.amount)}</strong>
+                <button class="btn secondary mini" onclick="openIncomeForm('${i.id}')">Editar</button>
+                <button class="btn bad mini" onclick="deleteIncome('${i.id}');openMonthEntries('${monthKey}')">Excluir</button>
+              </div>
+            </div>`).join('')}</div>` : `<div class="empty">Nenhuma entrada lançada neste mês.</div>`}
+          <div class="modal-actions-row">
+            <button class="btn" onclick="closeDialog(); state.selectedMonth='${monthKey}'; openIncomeForm()">+ Adicionar entrada</button>
+            <button class="btn secondary" onclick="openFinanceMonth('${monthKey}')">Fechar</button>
+          </div>
+        </div>
+      `);
+    }
+    function openMonthExpenses(monthKey, pendingOnly=false){
+      const fullList = pendingOnly ? getPendingExpenses(monthKey) : getMonthExpenseList(monthKey);
+      const monthName = monthNames[Number(monthKey.slice(5,7))-1];
+      openDialog(`
+        <div class="card" style="box-shadow:none;border:none;padding:20px">
+          <div class="section-title">
+            <h2 style="margin:0">${pendingOnly ? 'Saídas pendentes' : 'Saída'} • ${monthName} ${monthKey.slice(0,4)}</h2>
+            <button type="button" class="btn secondary mini" onclick="${pendingOnly ? 'closeDialog()' : `openFinanceMonth('${monthKey}')`}">Voltar</button>
+          </div>
+          ${fullList.length ? `<div class="list">${fullList.map(e => `
+            <div class="item">
+              <div class="item-left">
+                <div class="item-title">${e.name}</div>
+                <div class="item-sub">${e.category} • vence ${formatDate(e.dueDate)} • ${e.paymentMethod || 'sem forma de pagamento'}</div>
+                <div>${e.paid ? '<span class="pill ok">Pago</span>' : '<span class="pill warn">Pendente</span>'}</div>
+              </div>
+              <div class="item-actions">
+                <strong>${formatMoney(e.actualAmount || e.amount)}</strong>
+                ${e.paid ? `<button class="btn secondary mini" onclick="togglePaid('${e.id}');openMonthExpenses('${monthKey}', ${pendingOnly})">Desmarcar</button>` : `<button class="btn ok mini" onclick="togglePaid('${e.id}');openMonthExpenses('${monthKey}', ${pendingOnly})">Dar baixa</button>`}
+                <button class="btn secondary mini" onclick="openExpenseForm('${e.id}')">Editar</button>
+              </div>
+            </div>`).join('')}</div>` : `<div class="empty">${pendingOnly ? 'Nenhuma saída pendente neste mês.' : 'Nenhuma saída lançada neste mês.'}</div>`}
+          <div class="modal-actions-row">
+            <button class="btn" onclick="closeDialog(); state.selectedMonth='${monthKey}'; openExpenseForm()">+ Adicionar despesa</button>
+            ${pendingOnly ? `<button class="btn secondary" onclick="closeDialog()">Fechar</button>` : `<button class="btn secondary" onclick="openMonthExpenses('${monthKey}', true)">Ver só pendências</button>`}
+          </div>
+        </div>
+      `);
+    }
+    function openMonthGoal(monthKey){
+      const goal = getGoalForMonth(monthKey);
+      const ms = monthSummary(monthKey);
+      const monthName = monthNames[Number(monthKey.slice(5,7))-1];
+      const amount = Number(goal?.amount || 0);
+      const diff = amount - ms.total;
+      openDialog(`
+        <form class="card" style="box-shadow:none;border:none;padding:20px" onsubmit="saveGoal(event, '${monthKey}')">
+          <div class="section-title">
+            <h2 style="margin:0">Meta • ${monthName} ${monthKey.slice(0,4)}</h2>
+            <button type="button" class="btn secondary mini" onclick="openFinanceMonth('${monthKey}')">Voltar</button>
+          </div>
+          <div class="field">
+            <label>Meta</label>
+            <input name="amount" type="number" step="0.01" value="${amount || ''}" placeholder="Digite o valor da meta">
+          </div>
+          <div class="notice">
+            Saída: ${formatMoney(ms.total)}<br>
+            ${amount ? `Saldo da meta: <strong style="color:${diff >= 0 ? 'var(--ok)' : 'var(--bad)'}">${formatMoney(diff)}</strong>` : 'Cadastre a meta para acompanhar a diferença.'}
+          </div>
+          <div class="modal-actions-row">
+            <button class="btn" type="submit">Salvar meta</button>
+            <button class="btn secondary" type="button" onclick="openFinanceMonth('${monthKey}')">Fechar</button>
+          </div>
+        </form>
+      `);
+    }
+    function saveGoal(event, monthKey){
+      event.preventDefault();
+      const fd = new FormData(event.target);
+      const amount = Number(fd.get('amount') || 0);
+      const idx = state.goals.findIndex(g => g.month===monthKey);
+      if(idx >= 0){
+        state.goals[idx] = { ...state.goals[idx], amount };
+      }else{
+        state.goals.push({ id: uid('goal'), month: monthKey, amount });
+      }
+      closeDialog();
+      renderAll();
+      openMonthGoal(monthKey);
+    }
+    function compactMoney(value){
+      const n = Number(value || 0);
+      return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(n);
+    }
+    function financeValueClass(value){
+      if(Number(value) > 0) return 'money-pos';
+      if(Number(value) < 0) return 'money-neg';
+      return 'money-neutral';
+    }
+
+    function renderAll(){
+      renderTabs();
+      renderInicio();
+      renderFinanceiro();
+      renderAgenda();
+      renderTarefas();
+      renderCompras();
+      renderConfig();
+      switchTab(state.currentTab, false);
+      saveState();
+      scheduleCloudSync();
+    }
+
+    function renderTabs(){
+      const html = TABS.map(t => `<button class="tab ${state.currentTab===t.id?'active':''}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</button>`).join('');
+      document.getElementById('desktopTabs').innerHTML = html;
+      document.getElementById('mobileTabs').innerHTML = TABS.map(t => `<button class="${state.currentTab===t.id?'active':''}" onclick="switchTab('${t.id}')"><span class="footer-icon">${t.icon}</span><span class="footer-label">${t.label}</span></button>`).join('');
+    }
+
+    function switchTab(tabId, rerender=true){
+      state.currentTab = tabId;
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById(`view-${tabId}`).classList.add('active');
+      if(rerender) renderAll(); else renderTabs();
+      saveState();
+    }
+
+    function renderInicio(){
+      const m = monthSummary(state.selectedMonth);
+      const goal = goalAmountForMonth(state.selectedMonth);
+      document.getElementById('view-inicio').innerHTML = `
+        <div class="grid" style="gap:16px">
+          <div class="card">
+            <div class="section-title"><h3>Ações rápidas</h3></div>
+            <div class="home-actions">
+              <button class="btn compact" onclick="openQuickAction()">+ Ação rápida</button>
+              <button class="btn compact" onclick="exportData()">Exportar backup</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h3>Resumo</h3>
+              <div class="month-nav">
+                <button class="btn secondary mini" onclick="changeMonth(-1)">◀</button>
+                <div class="month-chip">${currentMonthLabel()}</div>
+                <button class="btn secondary mini" onclick="changeMonth(1)">▶</button>
+              </div>
+            </div>
+            <div class="home-summary-row" style="grid-template-columns:repeat(2,1fr)">
+              <div class="summary-mini static">
+                <div class="label">Entradas</div>
+                <div class="value ok">${formatMoney(m.totalIncome)}</div>
+              </div>
+              <div class="summary-mini static">
+                <div class="label">Saídas</div>
+                <div class="value bad">${formatMoney(m.total)}</div>
+              </div>
+              <div class="summary-mini static">
+                <div class="label">Saldo</div>
+                <div class="value ${m.balance>=0?'ok':'bad'}">${formatMoney(m.balance)}</div>
+              </div>
+              <div class="summary-mini static">
+                <div class="label">Meta</div>
+                <div class="value ${goalDifferenceForMonth(state.selectedMonth) >= 0 ? 'ok' : 'bad'}">${goal ? formatMoney(goalDifferenceForMonth(state.selectedMonth)) : 'R$ 0,00'}</div>
+                <div class="sub">Meta base ${goal ? formatMoney(goal) : 'R$ 0,00'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><h3>Próximas contas</h3></div>
+            ${upcomingExpenses().length ? `<div class="list">${upcomingExpenses().map(e => `
+              <div class="item upcoming-clickable" onclick="openMonthExpenses('${e.month}', true)">
+                <div class="item-left">
+                  <div class="item-title">${e.name}</div>
+                  <div class="item-sub">Vence em ${formatDate(e.dueDate)} • ${formatMoney(e.actualAmount || e.amount)}</div>
+                </div>
+              </div>`).join('')}</div>` : `<div class="empty">Nenhuma conta pendente no momento.</div>`}
+          </div>
+
+          <div class="grid two">
+            <div class="card">
+              <div class="section-title"><h3>Próximos compromissos</h3></div>
+              ${renderSimpleList(upcomingAppointments(), a => `
+                <div class="item-title">${a.title}</div>
+                <div class="item-sub">${formatDate(a.date)} ${a.time ? '• '+a.time : ''}${a.location ? ' • '+a.location : ''}</div>
+              `, 'Nenhum compromisso cadastrado.')}
+            </div>
+            <div class="card">
+              <div class="section-title"><h3>Pendências rápidas</h3></div>
+              ${renderSimpleList([...pendingTasks(3), ...pendingShopping(3)], x => {
+                if(x.category){
+                  return `<div class="item-title">Compra: ${x.name}</div><div class="item-sub">${x.category} ${x.quantity ? '• qtd: '+x.quantity : ''}</div>`
+                }
+                return `<div class="item-title">Tarefa: ${x.title}</div><div class="item-sub">${x.deadline ? 'Prazo: '+formatDate(x.deadline) : 'Sem prazo definido'}</div>`
+              }, 'Nenhuma pendência por aqui.')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFinanceiro(){
+      const summary = monthSummary(state.selectedMonth);
+      const selectedYear = getSelectedYear();
+      const rows = getMonthlyFinanceRows(selectedYear);
+      const yearData = yearSummary(selectedYear);
+      const currentGoal = goalAmountForMonth(state.selectedMonth);
+      const currentGoalDiff = goalDifferenceForMonth(state.selectedMonth);
+      const yearGoalDiff = goalDifferenceForYear(selectedYear);
+      document.getElementById('view-financeiro').innerHTML = `
+        <div class="card finance-card">
+          <div class="finance-year-bar">
+            <div class="finance-year-nav">
+              <button class="btn secondary mini" onclick="changeFinanceYear(-1)">◀</button>
+              <div class="finance-year-value">${selectedYear}</div>
+              <button class="btn secondary mini" onclick="changeFinanceYear(1)">▶</button>
+            </div>
+
+            <div class="finance-toolbar-line">
+              <div class="finance-select">
+                <select onchange="setFinanceView(this.value)">
+                  <option value="todas" ${state.financeView==='todas'?'selected':''}>Todas</option>
+                  <option value="entradas" ${state.financeView==='entradas'?'selected':''}>Entrada</option>
+                  <option value="saidas" ${state.financeView==='saidas'?'selected':''}>Saída</option>
+                  <option value="metas" ${state.financeView==='metas'?'selected':''}>Meta</option>
+                </select>
+              </div>
+              <button class="btn compact" onclick="openIncomeForm()">+ Entrada</button>
+              <button class="btn compact" onclick="openExpenseForm()">+ Saída</button>
+            </div>
+          </div>
+
+          <div class="finance-table-wrap">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Mês</th>
+                  ${(state.financeView==='todas' || state.financeView==='entradas') ? '<th>Entrada</th>' : ''}
+                  ${(state.financeView==='todas' || state.financeView==='saidas') ? '<th>Saída</th>' : ''}
+                  <th>Saldo</th>
+                  ${(state.financeView==='todas' || state.financeView==='metas') ? '<th>Meta</th>' : ''}
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(row => `
+                  <tr>
+                    <td><button class="finance-month-btn" onclick="openFinanceMonth('${row.monthKey}')">${row.monthShort}</button></td>
+                    ${(state.financeView==='todas' || state.financeView==='entradas') ? `<td class="${financeValueClass(row.entradas)}">${compactMoney(row.entradas)}</td>` : ''}
+                    ${(state.financeView==='todas' || state.financeView==='saidas') ? `<td class="${financeValueClass(row.saidas ? -Math.abs(row.saidas) : 0)}">${compactMoney(row.saidas)}</td>` : ''}
+                    <td class="${financeValueClass(row.saldo)}">${compactMoney(row.saldo)}</td>
+                    ${(state.financeView==='todas' || state.financeView==='metas') ? `<td class="${financeValueClass(row.metas)}">${compactMoney(row.metas)}</td>` : ''}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="finance-summary-compact">
+            <div class="finance-mini-card clickable pending-link-card" onclick="openMonthExpenses('${state.selectedMonth}', true)">
+              <div class="label">Pendência</div>
+              <div class="value ${summary.pending>0?'money-neg':'money-neutral'}">${formatMoney(summary.pending)}</div>
+              <div class="sub">${summary.countPending} conta(s) em aberto</div>
+            </div>
+            <div class="finance-mini-card clickable" onclick="openFinanceMonth('${state.selectedMonth}')">
+              <div class="label">Mês atual</div>
+              <div class="value ${summary.balance>=0?'money-pos':'money-neg'}">${formatMoney(summary.balance)}</div>
+              <div class="sub-row">
+                <div class="sub-pill">Entrada ${formatMoney(summary.totalIncome)}</div>
+                <div class="sub-pill">Saída ${formatMoney(summary.total)}</div>
+                <div class="sub-pill">Meta ${currentGoal ? formatMoney(currentGoalDiff) : 'R$ 0,00'}</div>
+              </div>
+            </div>
+            <div class="finance-mini-card">
+              <div class="label">Ano atual</div>
+              <div class="value ${yearData.saldo>=0?'money-pos':'money-neg'}">${formatMoney(yearData.saldo)}</div>
+              <div class="sub-row">
+                <div class="sub-pill">Entrada ${formatMoney(yearData.entradas)}</div>
+                <div class="sub-pill">Saída ${formatMoney(yearData.saidas)}</div>
+                <div class="sub-pill">Meta ${formatMoney(yearGoalDiff)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAgenda(){
+      const list = [...state.appointments].sort((a,b)=>`${a.date}${a.time||''}`.localeCompare(`${b.date}${b.time||''}`));
+      document.getElementById('view-agenda').innerHTML = `
+        <div class="card">
+          <div class="section-title">
+            <h2>Agenda</h2>
+            <div class="toolbar">
+              <button class="btn" onclick="openAppointmentForm()">+ Novo compromisso</button>
+            </div>
+          </div>
+          <div class="notice">Nesta primeira versão, a agenda é interna do Jarvis. A integração com Google Calendar entra na próxima etapa.</div>
+          <div style="margin-top:16px">
+            ${list.length ? `<div class="list">${list.map(a => `
+              <div class="item">
+                <div class="item-left">
+                  <div class="item-title">${a.title}</div>
+                  <div class="item-sub">${formatDate(a.date)} ${a.time ? '• '+a.time : ''}${a.location ? ' • '+a.location : ''}</div>
+                  ${a.notes ? `<div class="item-sub">${a.notes}</div>` : ''}
+                </div>
+                <div class="item-actions">
+                  <button class="btn secondary mini" onclick="openAppointmentForm('${a.id}')">Editar</button>
+                  <button class="btn bad mini" onclick="deleteAppointment('${a.id}')">Excluir</button>
+                </div>
+              </div>`).join('')}</div>` : `<div class="empty">Nenhum compromisso cadastrado.</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTarefas(){
+      const list = [...state.tasks].sort((a,b)=>(a.status==='concluída')-(b.status==='concluída') || (a.deadline||'9999').localeCompare(b.deadline||'9999'));
+      document.getElementById('view-tarefas').innerHTML = `
+        <div class="card">
+          <div class="section-title">
+            <h2>Tarefas</h2>
+            <button class="btn" onclick="openTaskForm()">+ Nova tarefa</button>
+          </div>
+          ${list.length ? `<div class="list">${list.map(t => `
+            <div class="item">
+              <div class="item-left">
+                <div class="item-title">${t.title}</div>
+                <div class="item-sub">${t.description || 'Sem descrição'} ${t.deadline ? '• prazo: '+formatDate(t.deadline) : ''}</div>
+                <div>
+                  <span class="pill ${t.priority==='alta'?'bad':t.priority==='média'?'warn':''}">Prioridade ${t.priority || 'baixa'}</span>
+                  <span class="pill ${t.status==='concluída'?'ok':t.status==='em andamento'?'warn':''}">${t.status}</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                ${t.status!=='concluída' ? `<button class="btn ok mini" onclick="completeTask('${t.id}')">Concluir</button>` : `<button class="btn secondary mini" onclick="reopenTask('${t.id}')">Reabrir</button>`}
+                <button class="btn secondary mini" onclick="openTaskForm('${t.id}')">Editar</button>
+                <button class="btn bad mini" onclick="deleteTask('${t.id}')">Excluir</button>
+              </div>
+            </div>`).join('')}</div>` : `<div class="empty">Nenhuma tarefa cadastrada.</div>`}
+        </div>
+      `;
+    }
+
+    function renderCompras(){
+      const options = ['mercado','farmácia','diversos'];
+      const list = state.shopping.filter(i=>i.category===state.shoppingView);
+      document.getElementById('view-compras').innerHTML = `
+        <div class="card">
+          <div class="section-title">
+            <h2>Lista de compras</h2>
+            <button class="btn" onclick="openShoppingForm()">+ Novo item</button>
+          </div>
+          <div class="shop-tabs">${options.map(o=>`<button class="shop-tab ${state.shoppingView===o?'active':''}" onclick="setShoppingView('${o}')">${o}</button>`).join('')}</div>
+          ${list.length ? `<div class="list">${list.map(i => `
+            <div class="item">
+              <div class="item-left">
+                <div class="item-title">${i.name}</div>
+                <div class="item-sub">${i.quantity ? 'Quantidade: '+i.quantity+' • ' : ''}${i.notes || 'Sem observações'}</div>
+                <div>${i.done ? '<span class="pill ok">Comprado</span>' : '<span class="pill warn">Pendente</span>'}${i.priority ? `<span class="pill">${i.priority}</span>`:''}</div>
+              </div>
+              <div class="item-actions">
+                ${i.done ? `<button class="btn secondary mini" onclick="toggleShopping('${i.id}')">Desmarcar</button>` : `<button class="btn ok mini" onclick="toggleShopping('${i.id}')">Marcar comprado</button>`}
+                <button class="btn secondary mini" onclick="openShoppingForm('${i.id}')">Editar</button>
+                <button class="btn bad mini" onclick="deleteShopping('${i.id}')">Excluir</button>
+              </div>
+            </div>`).join('')}</div>` : `<div class="empty">Nenhum item em ${state.shoppingView}.</div>`}
+        </div>
+      `;
+    }
+
+    function renderConfig(){
+      document.getElementById('view-config').innerHTML = `
+        <div class="grid two">
+          <div class="card">
+            <h2>Configurações básicas</h2>
+            <div class="field"><label>Nome do sistema</label><input value="${escapeHtml(state.settings.systemName)}" oninput="updateSetting('systemName', this.value)" /></div>
+            <div class="field"><label>Seu nome</label><input value="${escapeHtml(state.settings.user1)}" oninput="updateSetting('user1', this.value)" /></div>
+            <div class="field"><label>Nome da sua esposa</label><input value="${escapeHtml(state.settings.user2)}" oninput="updateSetting('user2', this.value)" /></div>
+            <div class="notice">Nesta fase, estas configurações são mais visuais. Depois podemos transformar isso em usuários reais.</div>
+          </div>
+          <div class="card">
+            <h2>Segurança e manutenção</h2>
+            <button class="btn" onclick="exportData()">Exportar backup</button>
+            <button class="btn secondary" onclick="document.getElementById('importFile').click()" style="margin-left:8px">Importar backup</button>
+            <button class="btn ghost" onclick="loadDemoData()" style="margin-top:12px">Carregar dados de exemplo</button>
+            <button class="btn bad" onclick="resetSystem()" style="margin-top:12px">Apagar tudo e recomeçar</button>
+            <div class="danger-note">Apagar tudo remove os dados salvos neste navegador. Faça backup antes.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSimpleList(list, renderLine, emptyText){
+      return list.length ? `<div class="list">${list.map(x => `<div class="item"><div class="item-left">${renderLine(x)}</div></div>`).join('')}</div>` : `<div class="empty">${emptyText}</div>`;
+    }
+
+    function changeMonth(delta){
+      state.selectedMonth = nextMonth(state.selectedMonth, delta);
+      ensureRecurringForMonth(state.selectedMonth);
+      renderAll();
+    }
+
+    function updateSetting(key, value){
+      state.settings[key] = value;
+      saveState();
+    }
+
+    function openQuickAction(){
+      openDialog(`
+        <div class="card" style="box-shadow:none;border:none;padding:20px">
+          <h2 style="margin-top:0">Ação rápida</h2>
+          <div class="grid three">
+            <button class="btn" onclick="closeDialog();openExpenseForm()">Nova despesa</button>
+            <button class="btn" onclick="closeDialog();openIncomeForm()">Nova entrada</button>
+            <button class="btn" onclick="closeDialog();openAppointmentForm()">Novo compromisso</button>
+            <button class="btn" onclick="closeDialog();openTaskForm()">Nova tarefa</button>
+            <button class="btn" onclick="closeDialog();openShoppingForm()">Novo item de compra</button>
+            <button class="btn secondary" onclick="closeDialog()">Fechar</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openExpenseForm(id=''){
+      const item = id ? state.expenses.find(x=>x.id===id) : null;
+      openDialog(`
+        <form class="card" style="box-shadow:none;border:none;padding:20px" onsubmit="saveExpense(event, '${id}')">
+          <div class="section-title"><h2 style="margin:0">${item ? 'Editar despesa' : 'Nova despesa'}</h2><button type="button" class="btn secondary mini" onclick="closeDialog()">Fechar</button></div>
+          <div class="split">
+            <div class="field"><label>Nome da despesa</label><input name="name" required value="${escapeAttr(item?.name || '')}"></div>
+            <div class="field"><label>Categoria</label><input name="category" required value="${escapeAttr(item?.category || '')}" placeholder="Ex: Moradia, Saúde, Cartões"></div>
+            <div class="field"><label>Tipo</label><select name="type"><option ${item?.type==='fixa'?'selected':''}>fixa</option><option ${item?.type==='variável'?'selected':''}>variável</option></select></div>
+            <div class="field"><label>Valor</label><input name="amount" type="number" step="0.01" required value="${item?.actualAmount || item?.amount || ''}"></div>
+            <div class="field"><label>Vencimento</label><input name="dueDate" type="date" required value="${escapeAttr(item?.dueDate || `${state.selectedMonth}-01`)}"></div>
+            <div class="field"><label>Forma de pagamento</label><input name="paymentMethod" value="${escapeAttr(item?.paymentMethod || '')}" placeholder="Pix, cartão, boleto..."></div>
+          </div>
+          <div class="field"><label>Observação</label><textarea name="notes" rows="3" placeholder="Opcional">${escapeHtml(item?.notes || '')}</textarea></div>
+          <div class="inline">
+            <label><input name="paid" type="checkbox" ${item?.paid ? 'checked' : ''}> Já foi paga</label>
+            <label><input name="repeat" type="checkbox" ${item?.repeat || !item ? 'checked' : ''}> Repetir todo mês</label>
+          </div>
+          <div class="inline" style="margin-top:16px">
+            <button class="btn" type="submit">Salvar</button>
+            <button class="btn secondary" type="button" onclick="closeDialog()">Cancelar</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveExpense(event, id=''){
+      event.preventDefault();
+      const fd = new FormData(event.target);
+      const expense = {
+        id: id || uid('exp'),
+        month: (fd.get('dueDate') || `${state.selectedMonth}-01`).slice(0,7),
+        name: fd.get('name'),
+        category: fd.get('category'),
+        type: fd.get('type'),
+        amount: Number(fd.get('amount') || 0),
+        actualAmount: Number(fd.get('amount') || 0),
+        dueDate: fd.get('dueDate'),
+        paymentMethod: fd.get('paymentMethod'),
+        notes: fd.get('notes'),
+        paid: fd.get('paid') === 'on',
+        repeat: fd.get('repeat') === 'on',
+        createdAt: new Date().toISOString(),
+      };
+      if(id){
+        const idx = state.expenses.findIndex(x=>x.id===id);
+        const old = state.expenses[idx] || {};
+        state.expenses[idx] = { ...old, ...expense };
+      }else{
+        state.expenses.push(expense);
+      }
+      if(expense.repeat){
+        upsertRecurringTemplate(expense);
+      }
+      state.selectedMonth = expense.month;
+      closeDialog();
+      renderAll();
+    }
+
+    function upsertRecurringTemplate(expense){
+      let existing = state.recurringTemplates.find(t => t.name===expense.name && t.category===expense.category);
+      const dueDay = Number((expense.dueDate || '').slice(-2)) || 1;
+      if(existing){
+        existing.type = expense.type;
+        existing.amount = Number(expense.actualAmount || expense.amount || 0);
+        existing.dueDay = dueDay;
+        existing.paymentMethod = expense.paymentMethod;
+      }else{
+        state.recurringTemplates.push({
+          templateId: uid('tpl'),
+          name: expense.name,
+          category: expense.category,
+          type: expense.type,
+          amount: Number(expense.actualAmount || expense.amount || 0),
+          dueDay,
+          paymentMethod: expense.paymentMethod,
+          repeat: true
+        });
+      }
+    }
+
+    function togglePaid(id){
+      const item = state.expenses.find(x=>x.id===id);
+      if(!item) return;
+      item.paid = !item.paid;
+      renderAll();
+    }
+    function deleteExpense(id){
+      if(!confirm('Excluir esta despesa?')) return;
+      state.expenses = state.expenses.filter(x=>x.id!==id);
+      renderAll();
+    }
+
+    function openIncomeForm(id=''){
+      const item = id ? state.income.find(x=>x.id===id) : null;
+      openDialog(`
+        <form class="card" style="box-shadow:none;border:none;padding:20px" onsubmit="saveIncome(event, '${id}')">
+          <div class="section-title"><h2 style="margin:0">${item ? 'Editar entrada' : 'Nova entrada'}</h2><button type="button" class="btn secondary mini" onclick="closeDialog()">Fechar</button></div>
+          <div class="split">
+            <div class="field"><label>Descrição</label><input name="description" required value="${escapeAttr(item?.description || '')}"></div>
+            <div class="field"><label>Categoria</label><input name="category" value="${escapeAttr(item?.category || '')}" placeholder="Salário, extra, venda..."></div>
+            <div class="field"><label>Valor</label><input name="amount" type="number" step="0.01" required value="${item?.amount || ''}"></div>
+            <div class="field"><label>Data</label><input name="date" type="date" required value="${escapeAttr(item?.date || `${state.selectedMonth}-01`)}"></div>
+          </div>
+          <div class="field"><label>Observação</label><textarea name="notes" rows="3">${escapeHtml(item?.notes || '')}</textarea></div>
+          <div class="inline"><button class="btn" type="submit">Salvar</button><button class="btn secondary" type="button" onclick="closeDialog()">Cancelar</button></div>
+        </form>
+      `);
+    }
+    function saveIncome(event,id=''){
+      event.preventDefault();
+      const fd = new FormData(event.target);
+      const item = {
+        id:id||uid('inc'),
+        month:(fd.get('date')||`${state.selectedMonth}-01`).slice(0,7),
+        description:fd.get('description'),
+        category:fd.get('category'),
+        amount:Number(fd.get('amount')||0),
+        date:fd.get('date'),
+        notes:fd.get('notes')
+      };
+      if(id){
+        const idx = state.income.findIndex(x=>x.id===id);
+        state.income[idx] = { ...state.income[idx], ...item };
+      }else state.income.push(item);
+      state.selectedMonth = item.month;
+      closeDialog();
+      renderAll();
+    }
+    function deleteIncome(id){
+      if(!confirm('Excluir esta entrada?')) return;
+      state.income = state.income.filter(x=>x.id!==id);
+      renderAll();
+    }
+
+    function openAppointmentForm(id=''){
+      const item = id ? state.appointments.find(x=>x.id===id) : null;
+      openDialog(`
+        <form class="card" style="box-shadow:none;border:none;padding:20px" onsubmit="saveAppointment(event, '${id}')">
+          <div class="section-title"><h2 style="margin:0">${item ? 'Editar compromisso' : 'Novo compromisso'}</h2><button type="button" class="btn secondary mini" onclick="closeDialog()">Fechar</button></div>
+          <div class="split">
+            <div class="field"><label>Título</label><input name="title" required value="${escapeAttr(item?.title || '')}"></div>
+            <div class="field"><label>Data</label><input name="date" type="date" required value="${escapeAttr(item?.date || new Date().toISOString().slice(0,10))}"></div>
+            <div class="field"><label>Horário</label><input name="time" type="time" value="${escapeAttr(item?.time || '')}"></div>
+            <div class="field"><label>Local</label><input name="location" value="${escapeAttr(item?.location || '')}"></div>
+          </div>
+          <div class="field"><label>Observação</label><textarea name="notes" rows="3">${escapeHtml(item?.notes || '')}</textarea></div>
+          <div class="inline"><button class="btn" type="submit">Salvar</button><button class="btn secondary" type="button" onclick="closeDialog()">Cancelar</button></div>
+        </form>
+      `);
+    }
+    function saveAppointment(event,id=''){
+      event.preventDefault();
+      const fd = new FormData(event.target);
+      const item = { id:id||uid('apt'), title:fd.get('title'), date:fd.get('date'), time:fd.get('time'), location:fd.get('location'), notes:fd.get('notes') };
+      if(id){
+        const idx = state.appointments.findIndex(x=>x.id===id);
+        state.appointments[idx] = { ...state.appointments[idx], ...item };
+      }else state.appointments.push(item);
+      closeDialog();
+      renderAll();
+    }
+    function deleteAppointment(id){ if(confirm('Excluir este compromisso?')){ state.appointments = state.appointments.filter(x=>x.id!==id); renderAll(); } }
+
+    function openTaskForm(id=''){
+      const item = id ? state.tasks.find(x=>x.id===id) : null;
+      openDialog(`
+        <form class="card" style="box-shadow:none;border:none;padding:20px" onsubmit="saveTask(event, '${id}')">
+          <div class="section-title"><h2 style="margin:0">${item ? 'Editar tarefa' : 'Nova tarefa'}</h2><button type="button" class="btn secondary mini" onclick="closeDialog()">Fechar</button></div>
+          <div class="split">
+            <div class="field"><label>Título</label><input name="title" required value="${escapeAttr(item?.title || '')}"></div>
+            <div class="field"><label>Prazo</label><input name="deadline" type="date" value="${escapeAttr(item?.deadline || '')}"></div>
+            <div class="field"><label>Prioridade</label><select name="priority"><option ${item?.priority==='baixa'?'selected':''}>baixa</option><option ${item?.priority==='média'?'selected':''}>média</option><option ${item?.priority==='alta'?'selected':''}>alta</option></select></div>
+            <div class="field"><label>Status</label><select name="status"><option ${item?.status==='pendente'?'selected':''}>pendente</option><option ${item?.status==='em andamento'?'selected':''}>em andamento</option><option ${item?.status==='concluída'?'selected':''}>concluída</option></select></div>
+          </div>
+          <div class="field"><label>Descrição</label><textarea name="description" rows="3">${escapeHtml(item?.description || '')}</textarea></div>
+          <div class="inline"><button class="btn" type="submit">Salvar</button><button class="btn secondary" type="button" onclick="closeDialog()">Cancelar</button></div>
+        </form>
+      `);
+    }
+    function saveTask(event,id=''){
+      event.preventDefault();
+      const fd = new FormData(event.target);
+      const item = { id:id||uid('tsk'), title:fd.get('title'), deadline:fd.get('deadline'), priority:fd.get('priority'), status:fd.get('status'), description:fd.get('description') };
+      if(id){ const idx = state.tasks.findIndex(x=>x.id===id); state.tasks[idx] = { ...state.tasks[idx], ...item }; } else state.tasks.push(item);
+      closeDialog();
+      renderAll();
+    }
+    function completeTask(id){ const i = state.tasks.find(x=>x.id===id); if(i){ i.status='concluída'; renderAll(); } }
+    function reopenTask(id){ const i = state.tasks.find(x=>x.id===id); if(i){ i.status='pendente'; renderAll(); } }
+    function deleteTask(id){ if(confirm('Excluir esta tarefa?')){ state.tasks = state.tasks.filter(x=>x.id!==id); renderAll(); } }
+
+    function setShoppingView(view){ state.shoppingView=view; renderAll(); }
+    function openShoppingForm(id=''){
+      const item = id ? state.shopping.find(x=>x.id===id) : null;
+      openDialog(`
+        <form class="card" style="box-shadow:none;border:none;padding:20px" onsubmit="saveShopping(event, '${id}')">
+          <div class="section-title"><h2 style="margin:0">${item ? 'Editar item' : 'Novo item de compra'}</h2><button type="button" class="btn secondary mini" onclick="closeDialog()">Fechar</button></div>
+          <div class="split">
+            <div class="field"><label>Nome do item</label><input name="name" required value="${escapeAttr(item?.name || '')}"></div>
+            <div class="field"><label>Quantidade</label><input name="quantity" value="${escapeAttr(item?.quantity || '')}" placeholder="Ex: 2, 1 caixa, 500g"></div>
+            <div class="field"><label>Categoria</label><select name="category"><option ${item?.category==='mercado'?'selected':''}>mercado</option><option ${item?.category==='farmácia'?'selected':''}>farmácia</option><option ${item?.category==='diversos'?'selected':''}>diversos</option></select></div>
+            <div class="field"><label>Prioridade</label><select name="priority"><option ${item?.priority==='baixa'?'selected':''}>baixa</option><option ${item?.priority==='média'?'selected':''}>média</option><option ${item?.priority==='alta'?'selected':''}>alta</option></select></div>
+          </div>
+          <div class="field"><label>Observação</label><textarea name="notes" rows="3">${escapeHtml(item?.notes || '')}</textarea></div>
+          <div class="inline"><label><input name="done" type="checkbox" ${item?.done ? 'checked' : ''}> Já foi comprado</label></div>
+          <div class="inline" style="margin-top:16px"><button class="btn" type="submit">Salvar</button><button class="btn secondary" type="button" onclick="closeDialog()">Cancelar</button></div>
+        </form>
+      `);
+    }
+    function saveShopping(event,id=''){
+      event.preventDefault();
+      const fd = new FormData(event.target);
+      const item = { id:id||uid('shop'), name:fd.get('name'), quantity:fd.get('quantity'), category:fd.get('category'), priority:fd.get('priority'), notes:fd.get('notes'), done: fd.get('done')==='on' };
+      if(id){ const idx = state.shopping.findIndex(x=>x.id===id); state.shopping[idx] = { ...state.shopping[idx], ...item }; } else state.shopping.push(item);
+      state.shoppingView = item.category;
+      closeDialog();
+      renderAll();
+    }
+    function toggleShopping(id){ const i = state.shopping.find(x=>x.id===id); if(i){ i.done=!i.done; renderAll(); } }
+    function deleteShopping(id){ if(confirm('Excluir este item?')){ state.shopping = state.shopping.filter(x=>x.id!==id); renderAll(); } }
+
+    function exportData(){
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jarvis-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    document.getElementById('importFile').addEventListener('change', function(){
+      const file = this.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try{
+          const data = JSON.parse(e.target.result);
+          state = { ...defaultState(), ...data, currentTab:'inicio' };
+          ensureRecurringForMonth(state.selectedMonth);
+          renderAll();
+          alert('Backup importado com sucesso.');
+        }catch{
+          alert('Não consegui importar esse arquivo.');
+        }
+      };
+      reader.readAsText(file);
+      this.value='';
+    });
+    function resetSystem(){
+      if(!confirm('Tem certeza que deseja apagar tudo?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = defaultState();
+      ensureRecurringForMonth(state.selectedMonth);
+      renderAll();
+    }
+    function loadDemoData(){
+      const month = state.selectedMonth;
+      state.income.push({id:uid('inc'), month, description:'Entrada principal', category:'Receita', amount:23000, date:`${month}-05`, notes:''});
+      state.appointments.push({id:uid('apt'), title:'Consulta', date:`${month}-12`, time:'09:00', location:'Clínica', notes:'Levar documentos'});
+      state.tasks.push({id:uid('tsk'), title:'Conferir contas do mês', deadline:`${month}-10`, priority:'alta', status:'pendente', description:'Olhar tudo antes do vencimento.'});
+      state.shopping.push({id:uid('shop'), name:'Arroz', quantity:'2 pacotes', category:'mercado', priority:'alta', notes:'Tipo 1', done:false});
+      state.shopping.push({id:uid('shop'), name:'Sabonete', quantity:'4 unidades', category:'farmácia', priority:'média', notes:'', done:false});
+      renderAll();
+    }
+
+    function openDialog(content){
+      const d = document.getElementById('formDialog');
+      if(d.open) d.close();
+      d.innerHTML = content;
+      d.showModal();
+    }
+    function closeDialog(){ const d = document.getElementById('formDialog'); if(d.open) d.close(); }
+    document.getElementById('formDialog').addEventListener('click', function(event){
+      const rect = this.getBoundingClientRect();
+      const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+      if(!inside) this.close();
+    });
+
+    function escapeHtml(str=''){ return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+    function escapeAttr(str=''){ return escapeHtml(str); }
+
+    window.switchTab = switchTab;
+    window.changeMonth = changeMonth;
+    window.changeFinanceYear = changeFinanceYear;
+    window.setFinanceView = setFinanceView;
+    window.openFinanceMonth = openFinanceMonth;
+    window.openMonthEntries = openMonthEntries;
+    window.openMonthExpenses = openMonthExpenses;
+    window.openMonthGoal = openMonthGoal;
+    window.saveGoal = saveGoal;
+    window.togglePaid = togglePaid;
+    window.deleteExpense = deleteExpense;
+    window.openExpenseForm = openExpenseForm;
+    window.saveExpense = saveExpense;
+    window.openIncomeForm = openIncomeForm;
+    window.saveIncome = saveIncome;
+    window.deleteIncome = deleteIncome;
+    window.openAppointmentForm = openAppointmentForm;
+    window.saveAppointment = saveAppointment;
+    window.deleteAppointment = deleteAppointment;
+    window.openTaskForm = openTaskForm;
+    window.saveTask = saveTask;
+    window.completeTask = completeTask;
+    window.reopenTask = reopenTask;
+    window.deleteTask = deleteTask;
+    window.setShoppingView = setShoppingView;
+    window.openShoppingForm = openShoppingForm;
+    window.saveShopping = saveShopping;
+    window.toggleShopping = toggleShopping;
+    window.deleteShopping = deleteShopping;
+    window.openQuickAction = openQuickAction;
+    window.closeDialog = closeDialog;
+    window.updateSetting = updateSetting;
+    window.exportData = exportData;
+    window.resetSystem = resetSystem;
+    window.loadDemoData = loadDemoData;
+    window.logout = logout;
+  </script>
+</body>
+</html>
